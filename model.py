@@ -59,7 +59,7 @@ def rnn_forward(
     x: np.ndarray,
     y: np.ndarray,
     params: Params,
-) -> tuple[np.ndarray, list[tuple[str, np.ndarray]]]:
+) -> tuple[float, list[tuple[str, np.ndarray]]]:
     """RNN forward pass.
 
     Parameters
@@ -81,8 +81,9 @@ def rnn_forward(
 
     Returns
     -------
-    tuple[numpy.ndarray, list[tuple[str, np.ndarray]]]
-        * The binary cross entropy loss. Of shape `(1, batch_size)`.
+    tuple[float, list[tuple[str, np.ndarray]]]
+        * The binary cross entropy loss, averaged over batches, and scaled by
+        sequence length.
         * The caches used by backward propagation
 
     """
@@ -167,7 +168,7 @@ def train_step(  # noqa: PLR0913
     dz_a: np.ndarray,
     params: Params,
     hyperparams: HyperParams,
-) -> np.ndarray:
+) -> float:
     """One step of the training process.
 
     A full forward and backward BPTT pass.
@@ -197,8 +198,9 @@ def train_step(  # noqa: PLR0913
 
     Returns
     -------
-    numpy.ndarray
-        The batch of losses, of shape `(1, batch_size)`.
+    float
+        The binary cross entropy loss, averaged over batches, and scaled by
+        sequence length.
 
     """
     loss, caches = rnn_forward(a, x, y, params)
@@ -258,7 +260,7 @@ def train(
             a = np.zeros(shape=(state_size, batch_size))
             dz_a = np.zeros(shape=(state_size, batch_size))
             batch_loss = train_step(a, x_batch, y_batch, dz_a, params, hyperparams)
-            losses.append(batch_loss.mean())
+            losses.append(batch_loss)
         global_loss = np.array(losses).mean()
         loss_per_epoch.append(global_loss)
         if verbose:
